@@ -28,4 +28,9 @@ $ copy .env.example .env
 ```
 Set your environment variables as your own variables like they're showed in `.env.example`
 
+## Run FastAPI server
+```bash
+$ uvicorn main:app --reload --host 0.0.0.0 --port 5000
+```
+
 
