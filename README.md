@@ -17,3 +17,15 @@ $ conda create -n env_name python=3.8
 ```bash
 $ conda activate env_name
 ```
+
+### Installation Neccessary Libraries
+```bash
+$ pip install -r requirements.txt
+```
+### Setup the environment variables
+```bash
+$ copy .env.example .env
+```
+Set your environment variables as your own variables like they're showed in `.env.example`
+
+
