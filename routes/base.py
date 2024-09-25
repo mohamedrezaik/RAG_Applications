@@ -8,7 +8,7 @@ base_router = APIRouter(
 
 # Create the default function responsible for default response(app name and version)
 @base_router.get("/")
-def default_fun():
+async def default_fun():
     # Loading env variables from the system
     app_name = os.getenv("APP_NAME")
     app_version = os.getenv("APP_VERSION")
