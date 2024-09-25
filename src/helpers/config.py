@@ -1,0 +1,15 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    
+    # Set and Validate the environment variables to access and manage theme
+    APP_NAME: str # Validate it's string type
+    APP_VERSION: str # Validate it's string type
+
+    class Config:
+        # Setting the environment variables file name
+        env_file = ".env"
+
+# A function to get an object of settings (it enables us to access environment variables)
+def get_settings():
+    return Settings()
