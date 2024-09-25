@@ -1,5 +1,5 @@
-from fastapi import FastAPI, APIRouter
-from helpers.config import get_settings
+from fastapi import FastAPI, APIRouter, Depends
+from helpers.config import get_settings, Settings
 
 # Create the default router
 base_router = APIRouter(
@@ -9,9 +9,11 @@ base_router = APIRouter(
 
 # Create the default function responsible for default response(app name and version)
 @base_router.get("/")
-async def default_fun():
+async def default_fun(
     # Loading env variables using our config module
-    settings = get_settings()
+    settings:Settings=Depends(get_settings), # We set the settings type as Settings class and use Depends from FastAPI to be sure get_settings() works probably
+    ):
+    # Loading env variables
     app_name = settings.APP_NAME
     app_version = settings.APP_VERSION
 
