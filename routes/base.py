@@ -4,7 +4,7 @@ from fastapi import FastAPI, APIRouter
 base_router = APIRouter()
 
 # Create the default function responsible for default response
-base_router.get("/")
+@base_router.get("/")
 def default_fun():
     return {
         "message": "Welcome!"
