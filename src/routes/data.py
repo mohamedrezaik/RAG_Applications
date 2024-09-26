@@ -2,6 +2,7 @@ from fastapi import FastAPI, APIRouter, Depends, UploadFile
 from helpers.config import get_settings, Settings
 from controllers import DataController
 
+
 # Create the data loader router
 base_router = APIRouter(
     prefix="/api/v1/data", # Adding this prefix for all routes Links
@@ -16,6 +17,8 @@ async def upload_data(
                     ):
     
     # Validating the file properties
-    is_valid = DataController().validate_uploaded_file(file=file)
+    is_valid, validate_signal = DataController().validate_uploaded_file(file=file)
 
-    return is_valid
+    return {
+        "singal": validate_signal
+    }
