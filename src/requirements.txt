@@ -3,3 +3,4 @@ uvicorn[standard]==0.30.6
 python-multipart==0.0.10
 python-dotenv==1.0.1
 pydantic-settings==2.5.2
+aiofile==3.8.8

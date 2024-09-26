@@ -19,5 +19,5 @@ class DataController(BaseController): # Inherit the general information from Bas
         if file.size > self.app_settings.FILE_MAX_SIZE * self.file_size_scale:
             return False, ResponseSignal.FILE_SIZE_EXCEEDED.value
         
-        return True, ResponseSignal.FILE_VALIDATE_SUCCESSED.value
+        return True, ResponseSignal.FILE_UPLOAD_SUCCEED.value
     
