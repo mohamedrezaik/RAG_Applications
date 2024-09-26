@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, Depends, UploadFile, status
 from fastapi.responses import JSONResponse
 from helpers.config import get_settings, Settings
-from controllers import DataController
+from controllers import DataController, ProjectController
 
 
 # Create the data loader router
@@ -30,11 +30,16 @@ async def upload_data(
             }
         )
 
-    # If it's valide return good response    
+    # If it's valid
+    
+    # Get the project_id files directory
+    project_files_dir = ProjectController().get_project_path(project_id=project_id)
+
     return JSONResponse(
          status_code = status.HTTP_200_OK,
          content={
-             "signal": validate_signal
+             "signal": validate_signal,
+             "project_dir": project_files_dir
          }
     )
        
