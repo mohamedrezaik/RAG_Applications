@@ -1,5 +1,7 @@
 from helpers.config import get_settings, Settings
 import os
+import random
+import string
 
 class BaseController:
     # Initializing the general settings to be inherited with BaseController class as a general knowledge in this module
@@ -15,3 +17,9 @@ class BaseController:
             "assets",
             "files"
         )
+
+    # A function to generate a random string for general use
+    def generate_random_string(self, length:int=12):
+        return "".join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+    
