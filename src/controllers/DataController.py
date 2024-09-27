@@ -23,6 +23,7 @@ class DataController(BaseController): # Inherit the general information from Bas
         return True, ResponseSignal.FILE_UPLOAD_SUCCEED.value
     
     # A function to create a unique file name after cleaning the original file name to make sure it's writable and readable on the disk
+    # It returns the file_path and new unique file name as an ID
     def generate_unique_file_path(self, orig_file_name:str, project_files_path:str):
         
         # Get a random key string to make our file name unique
@@ -49,7 +50,7 @@ class DataController(BaseController): # Inherit the general information from Bas
             new_file_name
             )
 
-        return file_path
+        return file_path, new_file_name
 
     def clean_file_name(self, orig_file_name:str):
 

@@ -44,8 +44,8 @@ async def upload_data(
     # Get the project_id files directory
     project_files_path = ProjectController().get_project_path(project_id=project_id)
 
-    # Create a file_path of recieved file inside project_files_dir
-    file_path = data_controller.generate_unique_file_path(
+    # Create a file_path and a file_id for the recieved file inside project files dir
+    file_path, file_id = data_controller.generate_unique_file_path(
         orig_file_name=file.filename, 
         project_files_path=project_files_path
         )
@@ -72,7 +72,7 @@ async def upload_data(
     return JSONResponse(
          content={
              "signal": validate_signal,
-             "project_dir": project_files_path
+             "file_id": file_id
          }
     )
        
