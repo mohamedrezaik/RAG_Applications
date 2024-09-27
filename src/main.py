@@ -8,4 +8,4 @@ app = FastAPI()
 app.include_router(base.base_router)
 
 # Adding the data route to our app
-app.include_router(data.base_router)
+app.include_router(data.data_router)

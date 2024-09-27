@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, Depends, UploadFile, status
 from fastapi.responses import JSONResponse
-from helpers.config import get_settings, Settings
+from helpers import get_settings, Settings, DataValidation
 from controllers import DataController, ProjectController
 from models import ResponseSignal
 from aiofile import async_open
@@ -11,12 +11,13 @@ import logging
 logger = logging.getLogger(name="uvicorn.error")
 
 # Create the data loader router
-base_router = APIRouter(
+data_router = APIRouter(
     prefix="/api/v1/data", # Adding this prefix for all routes Links
     tags=["api_v1", "data"]
 )
 
-@base_router.post("/upload/{project_id}") # project_id to direct the user into desired operations
+# This router to upload data files
+@data_router.post("/upload/{project_id}") # project_id to direct the user into desired operations
 async def upload_data(
                     project_id:str,
                     file:UploadFile, # We use UploadFile from fastapi to recieve the user files via it to allow fastapi deals with it probably
@@ -76,3 +77,9 @@ async def upload_data(
          }
     )
        
+
+# This router to process uploaded data files
+@data_router.post("/process/{project_id}")
+async def process_files(project_id:str, recieved_data:DataValidation): # We use 'DataValidation' as 'recieved_data' type to make FastApi deal with it as an object inhirets from pydantic 'BaseModel' to validate recieved data
+
+    return recieved_data.file_id
