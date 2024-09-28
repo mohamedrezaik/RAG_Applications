@@ -20,7 +20,7 @@ class DataController(BaseController): # Inherit the general information from Bas
         if file.size > self.app_settings.FILE_MAX_SIZE * self.file_size_scale:
             return False, ResponseSignal.FILE_SIZE_EXCEEDED.value
         
-        return True, ResponseSignal.FILE_UPLOAD_SUCCEED.value
+        return True, ResponseSignal.FILE_UPLOAD_SUCCEEDED.value
     
     # A function to create a unique file name after cleaning the original file name to make sure it's writable and readable on the disk
     # It returns the file_path and new unique file name as an ID
