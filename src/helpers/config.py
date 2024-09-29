@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     FILE_MAX_SIZE: int # Validate it's int type
     FILE_DEFAULT_CHUNK_SIZE: int # Validate it's int type
 
+    # Mongo connection variables
+    MONGODB_DATABASE: str
+    MONGODB_URL: str
+
     class Config:
         # Setting the environment variables file name
         env_file = ".env"

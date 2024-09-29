@@ -10,6 +10,7 @@ import logging
 # Create a logger to log the system errors under 'uvicorn.error' tag
 logger = logging.getLogger(name="uvicorn.error")
 
+
 # Create the data loader router
 data_router = APIRouter(
     prefix="/api/v1/data", # Adding this prefix for all routes Links
