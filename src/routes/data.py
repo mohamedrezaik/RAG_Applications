@@ -1,8 +1,8 @@
-from fastapi import FastAPI, APIRouter, Depends, UploadFile, status
+from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from helpers import get_settings, Settings, DataValidation
 from controllers import DataController, ProjectController, ProcessController
-from models import ResponseSignal
+from models import ResponseSignal, ProjectDataModel
 from aiofile import async_open
 import os
 import logging
@@ -20,11 +20,21 @@ data_router = APIRouter(
 # This router to upload data files
 @data_router.post("/upload/{project_id}") # project_id to direct the user into desired operations
 async def upload_data(
+                    request: Request,
                     project_id:str,
                     file:UploadFile, # We use UploadFile from fastapi to recieve the user files via it to allow fastapi deals with it probably
                     app_settings:Settings=Depends(get_settings), # We set the settings type as Settings class and use Depends from FastAPI to be sure get_settings() works probably
                     ):
     
+    # Get the "project_data_model" to can process on projects collection in mongodb
+    project_data_model = ProjectDataModel(
+        # We can access the variables within our "app" in main module by "Request" from fastapi
+        db_client=request.app.database_conn
+        )
+    
+    # Get all "project_id" data from our database
+    project_id_info = await project_data_model.get_project(project_id=project_id)
+
     # Create an object of DataController to can operate on recieved data
     data_controller = DataController()
 
@@ -74,7 +84,8 @@ async def upload_data(
     return JSONResponse(
          content={
              "signal": validate_signal,
-             "file_id": file_id
+             "file_id": file_id,
+             "project_id": str(project_id_info._id)
          }
     )
        
