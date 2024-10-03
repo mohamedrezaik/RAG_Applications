@@ -11,6 +11,7 @@ class Project(BaseModel):
 
     # This _id create by defualt in mongodb collections and has a special type called "ObjectId"
     # Note that "ObjectId" is not recognized by pydantic so we handled it using "ConfigDict(arbitrary_types_allowed=True)"
+    # We have to access it directly because it's private property like this (DataChunk._id)
     _id: Optional[ObjectId]
 
     # Validate the project_id with type "str" and min_length = 1

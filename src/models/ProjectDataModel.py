@@ -45,10 +45,11 @@ class ProjectDataModel(BaseDataModel):
             return project
         
         # Our return is "Project" type
-        project = Project(project_id = document["project_id"])
+        # Note: we assingned "_id" manually because it is dealed as private variable so we have to assign it explicitly
+        project = Project(**document)
         project._id = document["_id"]
 
-        return project #Project(_id=document["_id"], project_id=document["project_id"])
+        return project
     
     # This method to return all project documents
     async def get_all_projects(self,pages:int=1, page_size: int=10):
@@ -61,14 +62,22 @@ class ProjectDataModel(BaseDataModel):
         if total_doc_count % page_size:
             total_pages += 1
 
+        if total_pages == 0:
+            # If there is no any documents in database
+            return [], total_pages
+        
         curser = self.collection.find({}).skip(((total_pages - pages) * page_size)).limit(pages * page_size)
 
         # Collect project documents in a list
         projects_doc = []
         async for doc in curser:
+            # Create an object of "Project" type to validate our database keys
+            # Note: we assingned "_id" manually because it is dealed as protected variable so we have to assign it explicitly
+            project = Project(**doc)
+            project._id = doc["_id"]
             projects_doc.append(
-                Project(**doc) # This will convert the dictionary type into parameters to passed
-            )
+                project
+                )
 
         return projects_doc, total_pages
 

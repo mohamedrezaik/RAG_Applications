@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from helpers import get_settings, Settings, DataValidation
 from controllers import DataController, ProjectController, ProcessController
-from models import ResponseSignal, ProjectDataModel
+from models import ResponseSignal, ProjectDataModel, ChunkDataModel, DataChunk
 from aiofile import async_open
 import os
 import logging
@@ -33,7 +33,7 @@ async def upload_data(
         )
     
     # Get all "project_id" data from our database
-    project_id_info = await project_data_model.get_project(project_id=project_id)
+    project_id_info, total_pages = await project_data_model.get_all_projects()
 
     # Create an object of DataController to can operate on recieved data
     data_controller = DataController()
@@ -84,19 +84,29 @@ async def upload_data(
     return JSONResponse(
          content={
              "signal": validate_signal,
-             "file_id": file_id,
-             "project_id": str(project_id_info._id)
+             "file_id": file_id
          }
     )
        
 
 # This router to process uploaded data files
 @data_router.post("/process/{project_id}")
-async def process_files(project_id:str, recieved_data:DataValidation): # We use 'DataValidation' as 'recieved_data' type to make FastApi deal with it as an object inhirets from pydantic 'BaseModel' to validate recieved data
+async def process_files(request: Request, project_id:str, recieved_data:DataValidation): # We use 'DataValidation' as 'recieved_data' type to make FastApi deal with it as an object inhirets from pydantic 'BaseModel' to validate recieved data
 
     # Extract processing parameters from user request
     chunk_size = recieved_data.chunk_size
     chunk_overlap = recieved_data.chunk_overlap
+    do_reset = recieved_data.do_reset
+
+    
+    # Get an instance of "ProjectDataModel" to can deal with mongodb projects collection
+    project_collection = ProjectDataModel(db_client=request.app.database_conn)
+
+    # Validate the "project_id" exists in mongodb or not if not create project with this specific "project_id"
+    project = await project_collection.get_project(project_id=project_id)
+
+    # Get an instance of "ChunkDataModel" to can deal with mongodb data chunks collection
+    data_chunk_collection = ChunkDataModel(db_client=request.app.database_conn)
 
     # Get the project_id files directory
     project_files_path = ProjectController().get_project_path(project_id=project_id)
@@ -120,5 +130,29 @@ async def process_files(project_id:str, recieved_data:DataValidation): # We use 
                 "signal": ResponseSignal.PROCESS_FAILED.value
             }
         )
+    
+    if do_reset:
+        _ = await data_chunk_collection.delete_chunks_by_project_id(project_id=project._id)
 
-    return file_chunks
+    # Convert the file_chunks list contents from "Document" type inot "DataChunk" type
+    file_chunks = [
+        DataChunk(
+            chunk_text=chunk.page_content,
+            chunk_metadata=chunk.metadata,
+            chunk_order=i + 1,
+            chunk_project_id=project._id # This project id created by mongodb itself "_id"
+        )
+        for i, chunk in enumerate(file_chunks)
+    ]
+
+    # Insert our chunks as batches into mongodb data chunks collection
+    inserted_chunks = await data_chunk_collection.insert_batch_chunks(file_chunks)
+
+
+    # Return number of inserted chunks
+    return JSONResponse(
+        content={
+            "signal": ResponseSignal.PROCESS_SUCCEEDED.value,
+            "inserted_chunks": inserted_chunks
+        }
+        )
