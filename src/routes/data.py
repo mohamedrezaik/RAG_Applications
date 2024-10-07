@@ -27,7 +27,7 @@ async def upload_data(
                     ):
     
     # Get the "project_data_model" to can process on projects collection in mongodb
-    project_data_model = ProjectDataModel(
+    project_data_model = await ProjectDataModel.get_instance(
         # We can access the variables within our "app" in main module by "Request" from fastapi
         db_client=request.app.database_conn
         )
@@ -100,13 +100,13 @@ async def process_files(request: Request, project_id:str, recieved_data:DataVali
 
     
     # Get an instance of "ProjectDataModel" to can deal with mongodb projects collection
-    project_collection = ProjectDataModel(db_client=request.app.database_conn)
+    project_collection = await ProjectDataModel.get_instance(db_client=request.app.database_conn)
 
     # Validate the "project_id" exists in mongodb or not if not create project with this specific "project_id"
     project = await project_collection.get_project(project_id=project_id)
 
     # Get an instance of "ChunkDataModel" to can deal with mongodb data chunks collection
-    data_chunk_collection = ChunkDataModel(db_client=request.app.database_conn)
+    data_chunk_collection = await ChunkDataModel.get_instance(db_client=request.app.database_conn)
 
     # Get the project_id files directory
     project_files_path = ProjectController().get_project_path(project_id=project_id)

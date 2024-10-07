@@ -5,12 +5,41 @@ from .mongodb_schemas import Project
 
 class ProjectDataModel(BaseDataModel):
 
-    def __init__(self, db_client):
+    def __init__(self, db_client: object):
         # Make the parent (BaseDataModel) see the db_client
         super().__init__(db_client)
 
         # Get the collection of projects from our database
         self.collection = self.db_client[DataBaseEnums.COLLECTION_PROJECT_NAME.value]
+
+    # This static method to can orchastrate between "__init__" as it normal method and "create_indexing_of_collection" as it's async method
+    @classmethod
+    async def get_instance(cls, db_client: object):
+        instance = cls(db_client=db_client)
+        # Create indexings if it's first time to create the collection
+        await instance.create_indexing_of_collection()
+
+        return instance
+
+
+    # A method to create the indexing of the collection once the collection created
+    async def create_indexing_of_collection(self):
+        # Get all existing collections' names in mongodb
+        all_collections = await self.db_client.list_collection_names()
+
+        # Check if our collection already exist or not
+        if DataBaseEnums.COLLECTION_PROJECT_NAME.value not in all_collections:
+            # Iterate though all indexings in "Project" schema
+            for index in Project.get_indexes(): # get_indexes returns all required indexings
+                # Create the index
+                await self.collection.create_index(
+                    index["key"],
+                    name=index["name"],
+                    unique=index["unique"]
+                )
+
+
+
 
     # This method to create a new document in projects collection
     # This method takes data in type of "Project" (inhiret from pydantic) to validate the data

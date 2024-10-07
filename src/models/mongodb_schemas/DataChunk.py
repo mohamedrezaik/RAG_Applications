@@ -23,3 +23,15 @@ class DataChunk(BaseModel):
 
     # project id here refers to _id in "Project" module
     chunk_project_id: ObjectId
+
+
+    # A method to get the indexing parameters for all indexings
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                "key": [("chunk_project_id", 1)], # 1 refers to the ordering technique (ascending)
+                "name": "chunk_project_id_index_1", # Name of indexing
+                "unique": False # Refers to the values in "chunk_project_id" is not unique
+            },
+        ]

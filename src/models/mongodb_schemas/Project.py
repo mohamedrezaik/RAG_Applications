@@ -25,3 +25,14 @@ class Project(BaseModel):
             raise ValueError("project_id must be alphanumeric")
         
         return value
+    
+    # A method to get the indexing parameters for all indexings
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                "key": [("project_id", 1)], # 1 refers to the ordering technique (ascending)
+                "name": "project_id_index_1", # Name of indexing
+                "unique": True # Refers to the values in "project_id" must be unique
+            },
+        ]

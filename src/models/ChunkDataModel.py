@@ -7,12 +7,39 @@ from pymongo import InsertOne # Operation type(insert on record)
 
 class ChunkDataModel(BaseDataModel):
 
-    def __init__(self, db_client):
+    def __init__(self, db_client: object):
         # Make the parent (BaseDataModel) see the db_client
         super().__init__(db_client)
 
         # Get the data chunk collection
         self.collection = self.db_client[DataBaseEnums.COLLECTION_DATA_CHUNK.value]
+
+    # This static method to can orchastrate between "__init__" as it normal method and "create_indexing_of_collection" as it's async method
+    @classmethod
+    async def get_instance(cls, db_client: object):
+        instance = cls(db_client=db_client)
+        # Create indexings if it's first time to create the collection
+        await instance.create_indexing_of_collection()
+
+        return instance
+
+
+    # A method to create the indexing of the collection once the collection created
+    async def create_indexing_of_collection(self):
+        # Get all existing collections' names in mongodb
+        all_collections = await self.db_client.list_collection_names()
+
+        # Check if our collection already exist or not
+        if DataBaseEnums.COLLECTION_DATA_CHUNK.value not in all_collections:
+            # Iterate though all indexings in "DataChunk" schema
+            for index in DataChunk.get_indexes(): # get_indexes returns all required indexings
+                # Create the index
+                await self.collection.create_index(
+                    index["key"],
+                    name=index["name"],
+                    unique=index["unique"]
+                )
+
 
     # A method to insert on chunk into database
     async def insert_chunk(self, chunk: DataChunk):
