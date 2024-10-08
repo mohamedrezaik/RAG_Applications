@@ -45,7 +45,7 @@ class ChunkDataModel(BaseDataModel):
     async def insert_chunk(self, chunk: DataChunk):
         
         # Insert the "chunk" into mongodb collection
-        result = self.collection.insert_one(chunk.model_dump())
+        result = await self.collection.insert_one(chunk.model_dump())
 
         # Store the mongodb "_id" into our chunk
         chunk._id = result.inserted_id

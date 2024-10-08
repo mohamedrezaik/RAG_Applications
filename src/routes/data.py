@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from helpers import get_settings, Settings, DataValidation
 from controllers import DataController, ProjectController, ProcessController
-from models import ResponseSignal, ProjectDataModel, ChunkDataModel, DataChunk
+from models import ResponseSignal, ProjectDataModel, ChunkDataModel, AssetDataModel, Asset, DataChunk, AssetTypeEnums
 from aiofile import async_open
 import os
 import logging
@@ -32,8 +32,8 @@ async def upload_data(
         db_client=request.app.database_conn
         )
     
-    # Get all "project_id" data from our database
-    project_id_info, total_pages = await project_data_model.get_all_projects()
+    # Get "project_id" data from our database
+    project = await project_data_model.get_project(project_id=project_id)
 
     # Create an object of DataController to can operate on recieved data
     data_controller = DataController()
@@ -80,11 +80,27 @@ async def upload_data(
             }
         )
 
+    # Insert the file details into assets collection in database
+    # Get the "asset_data_model" to can process on assets collection in mongodb
+    asset_data_model = await AssetDataModel.get_instance(
+        # We can access the variables within our "app" in main module by "Request" from fastapi
+        db_client=request.app.database_conn
+        )
+    
+    # 
+    asset_resource = Asset(
+        asset_project_id=project._id,
+        asset_type=AssetTypeEnums.FILE.value,
+        asset_name=file_id,
+        asset_size=os.path.getsize(file_path),
+        )
+    
+    asset_resource = await asset_data_model.insert_asset(asset=asset_resource)
 
     return JSONResponse(
          content={
              "signal": validate_signal,
-             "file_id": file_id
+             "file_id": str(asset_resource._id)
          }
     )
        

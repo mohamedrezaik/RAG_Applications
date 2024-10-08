@@ -1,6 +1,6 @@
-from .enums import ResponseSignal
-from .enums import ProcessEnums
+from .enums import ProcessEnums, AssetTypeEnums, ResponseSignal
 from .BaseDataModel import BaseDataModel
 from .ProjectDataModel import ProjectDataModel
 from .ChunkDataModel import ChunkDataModel
-from .mongodb_schemas import Project, DataChunk
+from .AssetDataModel import AssetDataModel
+from .mongodb_schemas import Project, DataChunk, Asset
