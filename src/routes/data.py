@@ -110,6 +110,7 @@ async def upload_data(
 async def process_files(request: Request, project_id:str, recieved_data:DataValidation): # We use 'DataValidation' as 'recieved_data' type to make FastApi deal with it as an object inhirets from pydantic 'BaseModel' to validate recieved data
 
     # Extract processing parameters from user request
+    file_id = recieved_data.file_id
     chunk_size = recieved_data.chunk_size
     chunk_overlap = recieved_data.chunk_overlap
     do_reset = recieved_data.do_reset
@@ -130,45 +131,91 @@ async def process_files(request: Request, project_id:str, recieved_data:DataVali
     # Get an object to can processes on the requested project_id
     process_controller = ProcessController(project_path=project_files_path)
 
-    # Get file content
-    file_content = process_controller.get_file_content(file_id=recieved_data.file_id)
+    if file_id:
+        project_file_ids = [file_id]
 
-    # Get file content as chuncks
-    file_chunks = process_controller.get_file_chunks(file_content=file_content, 
-                                                      chunk_size=chunk_size, 
-                                                      chunk_overlap=chunk_overlap)
-    
-    # Check if chunking succeeded or not
-    if file_chunks is None or len(file_chunks) == 0:
+    else:
+        # Get the "asset_data_model" to can process on assets collection in mongodb
+        asset_data_model = await AssetDataModel.get_instance(
+            # We can access the variables within our "app" in main module by "Request" from fastapi
+            db_client=request.app.database_conn
+            )
+
+        # Get all assets names of requested project
+        assets_details = await asset_data_model.get_all_assets(
+            asset_project_id=project._id,
+            asset_type=AssetTypeEnums.FILE.value,
+        )
+
+        # Get all file name in one list
+        project_file_ids = [
+            # asset_name in mongodb is file_id
+            asset["asset_name"]
+            for asset in assets_details
+        ]
+
+    # Check if there is no files in the requested project
+    if len(project_file_ids) == 0:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                "signal": ResponseSignal.PROCESS_FAILED.value
+                "signal": ResponseSignal.FILE_PROCESS_FAILED.value,
             }
-        )
-    
+            )
+
+    # Check if should to clear all past chunks data in mongodb of requested project
     if do_reset:
         _ = await data_chunk_collection.delete_chunks_by_project_id(project_id=project._id)
 
-    # Convert the file_chunks list contents from "Document" type inot "DataChunk" type
-    file_chunks = [
-        DataChunk(
-            chunk_text=chunk.page_content,
-            chunk_metadata=chunk.metadata,
-            chunk_order=i + 1,
-            chunk_project_id=project._id # This project id created by mongodb itself "_id"
-        )
-        for i, chunk in enumerate(file_chunks)
-    ]
+    # Iterate though all file_ids of the requested project
+    inserted_chunks = 0
+    no_files = 0
+    for file_id in project_file_ids:
+        # Get file content
+        file_content = process_controller.get_file_content(file_id=file_id)
 
-    # Insert our chunks as batches into mongodb data chunks collection
-    inserted_chunks = await data_chunk_collection.insert_batch_chunks(file_chunks)
+        # Check if there is no file content (file_id not exist in disk)
+        if file_content is None:
+            logger.error(f"Error while processing this file id : {file_id}")
+            continue
+
+        # Get file content as chuncks
+        file_chunks = process_controller.get_file_chunks(file_content=file_content, 
+                                                        chunk_size=chunk_size, 
+                                                        chunk_overlap=chunk_overlap)
+        
+        # Check if chunking succeeded or not
+        if file_chunks is None or len(file_chunks) == 0:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "signal": ResponseSignal.PROCESS_FAILED.value
+                }
+            )
+        
+
+        # Convert the file_chunks list contents from "Document" type inot "DataChunk" type
+        file_chunks = [
+            DataChunk(
+                chunk_text=chunk.page_content,
+                chunk_metadata=chunk.metadata,
+                chunk_order=i + 1,
+                chunk_project_id=project._id # This project id created by mongodb itself "_id"
+            )
+            for i, chunk in enumerate(file_chunks)
+        ]
+
+        # Insert our chunks as batches into mongodb data chunks collection
+        inserted_chunks += await data_chunk_collection.insert_batch_chunks(file_chunks)
+        # Add another processed file to counter
+        no_files += 1
 
 
     # Return number of inserted chunks
     return JSONResponse(
         content={
             "signal": ResponseSignal.PROCESS_SUCCEEDED.value,
-            "inserted_chunks": inserted_chunks
+            "inserted_chunks": inserted_chunks,
+            "processed_files": no_files,
         }
         )

@@ -51,11 +51,12 @@ class AssetDataModel(BaseDataModel):
 
         return asset
     
-    # A method to get all asset details by asset_project_id
-    async def get_all_assets_by_project_id(self, asset_project_id: str):
-        # Return all assets associated with requested asset_project_id
+    # A method to get all assets
+    async def get_all_assets(self, asset_project_id: str, asset_type: str):
+        # Return all assets associated with requested asset_project_id and asset_type
         return await self.collection.find(
             {
-                "asset_project_id": ObjectId(asset_project_id)
+                "asset_project_id": ObjectId(asset_project_id),
+                "asset_type": asset_type,
             }
         ).to_list(length=None)

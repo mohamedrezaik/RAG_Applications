@@ -29,6 +29,10 @@ class ProcessController(BaseController):
             file_id
         )
 
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            return None
+
         # Get the file extention
         file_extention = self.get_file_extention(file_id=file_id)
 
@@ -52,6 +56,10 @@ class ProcessController(BaseController):
 
         # Get the file loader the can we extract content from 
         loader = self.get_file_loader(file_id=file_id)
+
+        # Check if the loader is empty(no file_id exists)
+        if loader is None:
+            return None
 
         # This will return a list contains "Documents contain content and metadata" for each page from the file
         return loader.load()
