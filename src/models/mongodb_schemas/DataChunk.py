@@ -24,6 +24,9 @@ class DataChunk(BaseModel):
     # project id here refers to _id in "Project" module
     chunk_project_id: ObjectId
 
+    # This to store the file name of the chunk
+    chunk_asset_id: ObjectId
+
 
     # A method to get the indexing parameters for all indexings
     @classmethod

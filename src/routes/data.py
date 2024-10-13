@@ -131,37 +131,51 @@ async def process_files(request: Request, project_id:str, recieved_data:DataVali
     # Get an object to can processes on the requested project_id
     process_controller = ProcessController(project_path=project_files_path)
 
+    # Get the "asset_data_model" to can process on assets collection in mongodb
+    asset_data_model = await AssetDataModel.get_instance(
+        # We can access the variables within our "app" in main module by "Request" from fastapi
+        db_client=request.app.database_conn
+        )
     if file_id:
-        project_file_ids = [file_id]
+        # Get the details of this file from mongodb as "Asset" type
+        asset = await asset_data_model.get_one_asset(
+            asset_project_id=project._id,
+            asset_name=file_id,
+        )
+
+        # Check if the file not exist
+        if asset is None:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "signal": ResponseSignal.FILE_NOT_FOUND.value,
+                }
+            )
+        
+        project_file_ids = {asset._id: asset.asset_name}
 
     else:
-        # Get the "asset_data_model" to can process on assets collection in mongodb
-        asset_data_model = await AssetDataModel.get_instance(
-            # We can access the variables within our "app" in main module by "Request" from fastapi
-            db_client=request.app.database_conn
-            )
-
-        # Get all assets names of requested project
+        # Get all assets names of requested project as list of "Asset" type
         assets_details = await asset_data_model.get_all_assets(
             asset_project_id=project._id,
             asset_type=AssetTypeEnums.FILE.value,
         )
 
         # Get all file name in one list
-        project_file_ids = [
-            # asset_name in mongodb is file_id
-            asset["asset_name"]
+        project_file_ids = {
+            # asset_id (_id of the file in mongodb) and asset_name (file_id of the file in mongodb) as key and value
+            asset._id: asset.asset_name
             for asset in assets_details
-        ]
+        }
 
-    # Check if there is no files in the requested project
-    if len(project_file_ids) == 0:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "signal": ResponseSignal.FILE_PROCESS_FAILED.value,
-            }
-            )
+        # Check if there is no files in the requested project
+        if len(project_file_ids) == 0:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "signal": ResponseSignal.FILE_PROCESS_FAILED.value,
+                }
+                )
 
     # Check if should to clear all past chunks data in mongodb of requested project
     if do_reset:
@@ -170,7 +184,7 @@ async def process_files(request: Request, project_id:str, recieved_data:DataVali
     # Iterate though all file_ids of the requested project
     inserted_chunks = 0
     no_files = 0
-    for file_id in project_file_ids:
+    for _id, file_id in project_file_ids.items():
         # Get file content
         file_content = process_controller.get_file_content(file_id=file_id)
 
@@ -200,7 +214,8 @@ async def process_files(request: Request, project_id:str, recieved_data:DataVali
                 chunk_text=chunk.page_content,
                 chunk_metadata=chunk.metadata,
                 chunk_order=i + 1,
-                chunk_project_id=project._id # This project id created by mongodb itself "_id"
+                chunk_project_id=project._id, # This project id created by mongodb itself "_id"
+                chunk_asset_id=_id
             )
             for i, chunk in enumerate(file_chunks)
         ]

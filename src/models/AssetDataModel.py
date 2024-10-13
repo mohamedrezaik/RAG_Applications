@@ -53,10 +53,38 @@ class AssetDataModel(BaseDataModel):
     
     # A method to get all assets
     async def get_all_assets(self, asset_project_id: str, asset_type: str):
-        # Return all assets associated with requested asset_project_id and asset_type
-        return await self.collection.find(
-            {
-                "asset_project_id": ObjectId(asset_project_id),
-                "asset_type": asset_type,
-            }
-        ).to_list(length=None)
+        # Get all assets associated with requested asset_project_id and asset_type
+        records = await self.collection.find(
+                    {
+                        "asset_project_id": ObjectId(asset_project_id),
+                        "asset_type": asset_type,
+                    }
+                ).to_list(length=None)
+
+        # Return assets as a list of "Asset" type
+        assets = []
+        for record in records:
+            asset = Asset(**record)
+            asset._id = record["_id"] # We had to set "_id" manually because it's dealed as protected properity
+            assets.append(asset)
+
+        return assets
+    
+     # A method to get one asset
+    async def get_one_asset(self, asset_project_id: str, asset_name: str):
+        # Get one asset associated with requested asset_project_id and asset_name
+        record = await self.collection.find_one(
+                    {
+                        "asset_project_id": ObjectId(asset_project_id),
+                        "asset_name": asset_name,
+                    }
+                )
+
+        if record:
+            # Return asset as a type "Asset"
+            asset = Asset(**record)
+            asset._id = record["_id"] # We had to set "_id" manually because it's dealed as protected properity
+            return asset
+        
+        # Return None if there is no data in mongodb for this specific asset
+        return None
