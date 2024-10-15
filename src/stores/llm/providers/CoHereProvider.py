@@ -1,6 +1,6 @@
 from ..LLMInterface import LLMInterface
-from ..LLMEnums import OpenAIEnums
-from openai import OpenAI
+from ..LLMEnums import CoHereEnums, DocumentTypeEnums
+import cohere
 import logging
 
 class OpenAIProvider(LLMInterface):
@@ -8,15 +8,13 @@ class OpenAIProvider(LLMInterface):
     def __init__(
             self,
             api_key: str,
-            api_url: str= None, # this url to can use any provider other openai but usin openai behavior
             defualt_input_max_characters: int= 1000,
             defualt_generation_max_output_tokens: int= 1000,
             defualt_generation_temperature: float= 0,
         ):
         
         self.api_key = api_key
-        self.api_url = api_url
-
+        
         self.defualt_input_max_characters = defualt_input_max_characters
         self.defualt_generation_max_output_tokens = defualt_generation_max_output_tokens
         self.defualt_generation_temperature = defualt_generation_temperature
@@ -28,9 +26,8 @@ class OpenAIProvider(LLMInterface):
         self.embedding_size = None
 
         # Client to can access the llms provider
-        self.client = OpenAI(
+        self.client = cohere.ClientV2(
             api_key=self.api_key,
-            api_url=self.api_url
         )
 
         # Create a logger to moniter connections and generations
@@ -46,7 +43,7 @@ class OpenAIProvider(LLMInterface):
     def generate_text(self, prompt, chat_history: list= [], max_output_tokens: int= None, temperature: float= None):
         # Check the client status
         if not self.client:
-            self.logger.error("OpenAI client was not setted!")
+            self.logger.error("CoHere client was not setted!")
             return None
         
         # Check the generation model status
@@ -60,11 +57,11 @@ class OpenAIProvider(LLMInterface):
 
         # Update chat history with user prompt
         chat_history.append(
-            self.construct_prompt(prompt=prompt, role=OpenAIEnums.USER.value) # Set the prompt as required structure
+            self.construct_prompt(prompt=prompt, role=CoHereEnums.USER.value) # Set the prompt as required structure
         )
 
         # Generate respone
-        response = self.client.chat.completions.create(
+        response = self.client.chat(
             model=self.generation_model_id,
             messages=chat_history,
             max_tokens=max_output_tokens,
@@ -72,18 +69,18 @@ class OpenAIProvider(LLMInterface):
         )
 
         # Check the status of response
-        if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message or len(response.choices[0].message["content"]) == 0:
-            self.logger.error("Error occured while generating text using OpenAI!")
+        if not response or response.finish_reason != "COMPLETE":
+            self.logger.error("Error occured while generating text using CoHere!")
             return None
         
         # Return generated response
-        return response.choices[0].message["content"]
-
+        return response.message.content[0].text
+    
     def embed_text(self, text, document_type = None):
-        
+
         # Check the client status
         if not self.client:
-            self.logger.error("OpenAI client was not setted!")
+            self.logger.error("CoHere client was not setted!")
             return None
         
         # Check the embedding model status
@@ -91,22 +88,27 @@ class OpenAIProvider(LLMInterface):
             self.logger.error("Embedding model was not setted!")
             return None
         
+        # Check the document type 
+        input_type = CoHereEnums.DOCUMENT.value
+        if document_type == DocumentTypeEnums.QUERY.value:
+            input_type = CoHereEnums.QUERY.value
+
         # Generate the embedding response
-        response = self.client.embeddings.create(
+        response = self.client.embed(
             model= self.embedding_model_id,
-            input= text
+            texts= [text],
+            input_type=input_type,
+            embedding_types=['float']
         )
 
         # Check the response status
-        if not response or not response.data or len(response.data) == 0 or not response.data[0].embedding:
-            self.logger.error("Error occured while embedding the text using OpenAI!")
+        if not response or not response.embeddings or not response.embeddings.float or len(response.embeddings.float[0]) == 0:
+            self.logger.error("Error occured while embedding the text using CoHere!")
             return None
-
+        
         # Return the embedding vector of text
-        return response.data[0].embedding    
-    
+        return response.embeddings.float[0]
 
-    
     def construct_prompt(self, prompt: str, role: str):
         # return the prompt details as a dictionary
         return {
@@ -118,4 +120,5 @@ class OpenAIProvider(LLMInterface):
     def process_text(self, text: str):
         return text[:self.defualt_input_max_characters].strip()
 
-        
+
+    

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from routes import base
 from routes import data
-
+from stores import LLMProvidersFactory
 from motor.motor_asyncio import AsyncIOMotorClient # This for creating a mongo engine connected to monodb server
 
 from helpers import config
@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(name="uvicorn.error")
 
 
-# This function will be fired once when the application start and shutdown
+# This function will be fired once the application starts or shutdowns
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Get the settings to extract dependencies of mongo connection(Environment variables)
@@ -27,7 +27,18 @@ async def lifespan(app: FastAPI):
     app.mongodb_client = AsyncIOMotorClient(mongodb_url)
     app.database_conn = app.mongodb_client[mongodb_database]
 
-    yield # Before shutdown the applicaton to the following
+    # Get the LLM providers Factory
+    llm_provider_factory = LLMProvidersFactory(settings)
+
+    # Set the generation provider in "app"
+    app.generation_client = llm_provider_factory.ge_provider(provider=settings.GENERATION_PROVIDER)
+    app.generation_client.set_generation_model(model_id=settings.GENERATION_MODEL_ID)
+
+    # Set the Embedding provider in "app"
+    app.embedding_client = llm_provider_factory.ge_provider(provider=settings.EMBEDDING_PROVIDER)
+    app.embedding_client.set_embedding_model(model_id=settings.EMBEDDING_MODEL_ID, embedding_size=settings.EMBEDDING_MODEL_SIZE) 
+
+    yield # Before shutdown the applicaton do the following
     app.mongodb_client.close()
 
 # Create FastApi object

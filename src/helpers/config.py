@@ -14,6 +14,22 @@ class Settings(BaseSettings):
     MONGODB_DATABASE: str
     MONGODB_URL: str
 
+    # LLM Config
+    GENERATION_PROVIDER: str
+    EMBEDDING_PROVIDER: str
+
+    OPENAPI_API_KEY: str = None
+    OPENAPI_URL_KEY: str = None
+    COHERE_API_KEY: str = None
+
+    GENERATION_MODEL_ID: str = None
+    EMBEDDING_MODEL_ID: str = None
+    EMBEDDING_MODEL_SIZE: int = None
+
+    DEFUALT_INPUT_MAX_CHARACTERS: int = None
+    DEFUALT_GENERATION_MAX_OUTPUT_TOKENS: int = None
+    DEFUALT_GENERATION_TEMPERATURE: int = None
+
     class Config:
         # Setting the environment variables file name
         env_file = ".env"
