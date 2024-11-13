@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     DEFUALT_INPUT_MAX_CHARACTERS: int = None
     DEFUALT_GENERATION_MAX_OUTPUT_TOKENS: int = None
     DEFUALT_GENERATION_TEMPERATURE: int = None
+    
+    VECTORDB_PROVIDER: str
+    VECTORDB_NAME: str
+    VECTORDB_DISTANCE_METHOD: str = None
 
     class Config:
         # Setting the environment variables file name
