@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from routes import base
-from routes import data
+from routes import base, data, nlp
 from stores import LLMProvidersFactory
 from stores import VectorDBFactory
 from motor.motor_asyncio import AsyncIOMotorClient # This for creating a mongo engine connected to monodb server
@@ -63,3 +62,6 @@ app.include_router(base.base_router)
 
 # Adding the data route to our app
 app.include_router(data.data_router)
+
+# Adding the nlp route to our app
+app.include_router(nlp.nlp_router)
