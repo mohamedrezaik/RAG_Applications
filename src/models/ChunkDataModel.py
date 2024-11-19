@@ -67,6 +67,23 @@ class ChunkDataModel(BaseDataModel):
         data_chunk._id = result["_id"] # We have to set it manually(exiplicitly) because it's dealed as a protected property
         return data_chunk
     
+    # A method to get all chunks of a specific project
+    async def get_project_chunks(self, project_id: ObjectId, page_no: int=1, page_size: int=50):
+        records = self.collection.find(
+            {
+                "chunk_project_id": project_id
+            }
+        ).skip(
+            (page_no - 1) * page_size
+        ).limit(page_size).to_list(length=None)
+        
+        chunks = []
+        for record in records:
+            data_chunk = DataChunk(**record)
+            data_chunk._id = record["_id"]
+            chunks.append(data_chunk)
+        
+        return chunks
 
     # A method to insert chunks as batchs(it's more efficient to insert large number of chunks(instead of one by one) for our database)
     async def insert_batch_chunks(self, chunks: list, batch_size: int=100):

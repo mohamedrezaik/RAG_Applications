@@ -3,7 +3,7 @@ from ..LLMEnums import CoHereEnums, DocumentTypeEnums
 import cohere
 import logging
 
-class OpenAIProvider(LLMInterface):
+class CoHereProvider(LLMInterface):
     
     def __init__(
             self,
