@@ -1,2 +1,2 @@
 from .LLMProvidersFactory import LLMProvidersFactory
-import LLMEnums
+from .LLMEnums import LLMEnums, DocumentTypeEnums

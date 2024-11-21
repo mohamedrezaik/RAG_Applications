@@ -75,6 +75,7 @@ class QdrantDBProvider(VectorDBInterface):
                 collection_name=collection_name,
                 records=[
                     models.Record(
+                        id=[record_id],
                         vector=vector,
                         payload={
                             "metadata": metadata,
@@ -89,7 +90,7 @@ class QdrantDBProvider(VectorDBInterface):
         
         return True
     
-    def insert_many(self, collection_name: str, texts: list[str], vectors: list[list], metadatas: list[dict]= None, record_ids: list[str]= None, batch_size: int= 50):
+    def insert_many(self, collection_name: str, texts: List[str], vectors: List[list], metadatas: List[dict]= None, record_ids: List[str]= None, batch_size: int= 50):
         if not self.is_collection_existed(collection_name=collection_name):
             self.logger.error(f"Can not insert new records to non-existed collection: {collection_name}")
             return False
@@ -110,6 +111,7 @@ class QdrantDBProvider(VectorDBInterface):
             # Set records as one batch to be inserted to vector db
             batch_records = [
                 models.Record(
+                    id=record_ids_batch[x],
                     vector=vectors_batch[x],
                     payload={
                         "text": texts_batch[x],

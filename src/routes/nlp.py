@@ -1,8 +1,8 @@
 from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from helpers import get_settings, Settings, NLPValidation
-from ..models import ProjectDataModel, ChunkDataModel, ResponseSignal
-from ..controllers import NLPController
+from models import ProjectDataModel, ChunkDataModel, ResponseSignal
+from controllers import NLPController
 
 import logging
 logger = logging.getLogger("uvicorn.error")
@@ -36,17 +36,23 @@ async def index_project(request: Request, project_id: str, push_request: NLPVali
     
     page = 1
     inserted_count = 0
+    idx = 0
     
     while True:
-        chunks = chunk_model.get_project_chunks(project_id=project._id, page_no=page)
+        chunks = await chunk_model.get_project_chunks(project_id=project._id, page_no=page)
         
         # Exit if there is no data
         if not chunks or len(chunks) == 0:
             break
         
+        # Create id for each chunk
+        chunks_ids = list(range(idx, idx + len(chunks)))
+        idx += len(chunks)
+        
         is_inserted = nlp_controller.insert_into_vectordb(
             project=project,
             chunks=chunks,
+            chunks_ids=chunks_ids,
             do_rest=push_request.do_reset
             )
         

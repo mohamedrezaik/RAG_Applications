@@ -69,7 +69,7 @@ class ChunkDataModel(BaseDataModel):
     
     # A method to get all chunks of a specific project
     async def get_project_chunks(self, project_id: ObjectId, page_no: int=1, page_size: int=50):
-        records = self.collection.find(
+        records = await self.collection.find(
             {
                 "chunk_project_id": project_id
             }

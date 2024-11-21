@@ -1,6 +1,6 @@
 from .BaseController import BaseController
-from ..models import Project, DataChunk
-from ..stores import LLMEnums
+from models import Project, DataChunk
+from stores import LLMEnums, DocumentTypeEnums
 from typing import List
 
 
@@ -28,7 +28,7 @@ class NLPController(BaseController):
         
         return collection_info
     
-    def insert_into_vectordb(self, project: Project, chunks: List[DataChunk], do_rest: bool= False):
+    def insert_into_vectordb(self, project: Project, chunks: List[DataChunk], chunks_ids: List[int], do_rest: bool= False):
         # Step1: get collection name of project
         collection_name = self.create_collection_name(project_id=project.project_id)
         
@@ -43,7 +43,7 @@ class NLPController(BaseController):
         ]
         
         vectors = [
-            self.embedding_client.embed_text(text=chunk.chunk_text, document_type=LLMEnums.DocumentTypeEnums.DOCUMENT.value)
+            self.embedding_client.embed_text(text=chunk.chunk_text, document_type=DocumentTypeEnums.DOCUMENT.value)
             for chunk in chunks
         ]
         # Step3: create collection in vectordb if not exist
@@ -52,7 +52,7 @@ class NLPController(BaseController):
                                                  do_rest=do_rest
                                                  )
         # Step4: insert data into vectordb collection
-        _ = self.vectordb_provider.insert_many(collection_name=collection_name, texts=texts, vectors=vectors, metadatas=metadatas)
+        _ = self.vectordb_provider.insert_many(collection_name=collection_name, texts=texts, vectors=vectors, metadatas=metadatas, record_ids=chunks_ids)
         
         return True
     

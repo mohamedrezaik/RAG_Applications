@@ -21,7 +21,7 @@ class BaseController:
         # Get the vectordb directory automatically and stable to work on any machine type using 'os' library
         self.vectordb_dir = os.path.join(
             self.base_dir, # We used the self.base_dir as a parent dir because it's common to access files dir
-            "asset",
+            "assets",
             "vectordb"
         )
 
