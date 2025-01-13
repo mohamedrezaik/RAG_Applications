@@ -10,9 +10,9 @@ services:
     volumes:
       - mongodb:/data/db
 
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME} 
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME} 
+    #   - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
 
     networks:
       - backend
