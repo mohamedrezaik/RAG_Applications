@@ -1,8 +1,9 @@
 from fastapi import FastAPI, APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse
-from helpers import get_settings, Settings, NLPValidation
+from helpers import get_settings, Settings, pushRequest, searchRequest
 from models import ProjectDataModel, ChunkDataModel, ResponseSignal
 from controllers import NLPController
+
 
 import logging
 logger = logging.getLogger("uvicorn.error")
@@ -14,7 +15,7 @@ nlp_router = APIRouter(
 )
 
 @nlp_router.post("/index/push/{project_id}")
-async def index_project(request: Request, project_id: str, push_request: NLPValidation):
+async def index_project(request: Request, project_id: str, push_request: pushRequest):
     
     project_model = await ProjectDataModel.get_instance(
         db_client= request.app.database_conn
@@ -65,6 +66,7 @@ async def index_project(request: Request, project_id: str, push_request: NLPVali
         )
         
         inserted_count += len(chunks)
+        page += 1
         
     return JSONResponse(
         content={
@@ -73,8 +75,56 @@ async def index_project(request: Request, project_id: str, push_request: NLPVali
         }
     )
         
-        
+
+@nlp_router.get("/index/info/{project_id}")
+async def get_project_index_info(request: Request, project_id: str):
+    
+    project_model = await ProjectDataModel.get_instance(
+        db_client= request.app.database_conn
+    )
+    
+    project = await project_model.get_project(
+        project_id=project_id
+    )
+    
+    nlp_controller = NLPController(
+        vectordb_provider=request.app.vectordb_provider,
+        embedding_client=request.app.embedding_client,
+        generation_client=request.app.generation_client
+    )
+    
+    collection_info = nlp_controller.get_vectordb_collection_info(project=project)
+    
+    return JSONResponse(
+        content={
+            "signal": ResponseSignal.GET_VECTORDB_COLLECTION_INFO_SUCCEEDED.value,
+            "collection_info": collection_info
+        }
+    )
     
     
+@nlp_router.post("/index/search/{project_id}")
+async def search_project_index(request: Request, project_id: str, search_request: searchRequest):
     
+    project_model = await ProjectDataModel.get_instance(
+        db_client= request.app.database_conn
+    )
     
+    project = await project_model.get_project(
+        project_id=project_id
+    )
+    
+    nlp_controller = NLPController(
+        vectordb_provider=request.app.vectordb_provider,
+        embedding_client=request.app.embedding_client,
+        generation_client=request.app.generation_client
+    )
+    
+    search_result = nlp_controller.search_vector_db_collection(project=project, text=search_request.text, limit=search_request.limit)
+    
+    return JSONResponse(
+        content={
+            "signal": ResponseSignal.SEARCH_VECTORDB_COLLECTION_SUCCEEDED.value,
+            "search_result": search_result
+        }
+    )

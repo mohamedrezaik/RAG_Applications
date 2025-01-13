@@ -2,7 +2,7 @@ from .BaseController import BaseController
 from models import Project, DataChunk
 from stores import LLMEnums, DocumentTypeEnums
 from typing import List
-
+import json
 
 class NLPController(BaseController):
     def __init__(self, vectordb_provider, embedding_client, generation_client):
@@ -17,16 +17,19 @@ class NLPController(BaseController):
         return f"Collection_{project_id}".strip()
     
     def reset_vectordb_collection(self, project: Project):
-        collection_name = self.create_collection_name(project=project.project_id)
+        collection_name = self.create_collection_name(project_id=project.project_id)
         
         return self.vectordb_provider.delete_collection(collection_name=collection_name)
     
     def get_vectordb_collection_info(self, project: Project):
-        collection_name = self.create_collection_name(project=project.project_id)
+        collection_name = self.create_collection_name(project_id=project.project_id)
         
         collection_info = self.vectordb_provider.get_collection_info(collection_name=collection_name)
         
-        return collection_info
+        #Serialize the collection_info as a dictionary
+        return json.loads(
+            json.dumps(collection_info, default=lambda o: o.__dict__) # serialize the collection_info as a json string format
+            )
     
     def insert_into_vectordb(self, project: Project, chunks: List[DataChunk], chunks_ids: List[int], do_rest: bool= False):
         # Step1: get collection name of project
@@ -56,5 +59,23 @@ class NLPController(BaseController):
         
         return True
     
+    def search_vector_db_collection(self, project: Project, text: str, limit: int=6):
+        
+        # Step1: get collection name of project
+        collection_name = self.create_collection_name(project_id=project.project_id)
+        
+        # Step2: embed the text
+        embeded_text = self.embedding_client.embed_text(text=text, document_type=DocumentTypeEnums.QUERY.value)
+        
+        # Step3: search the vectordb collection
+        search_results = self.vectordb_provider.search_by_vector(collection_name=collection_name, vector=embeded_text, limit=limit)
+        
+        if not search_results or len(search_results) == 0:
+            return False
+        
+        # Serialize the search_results as a dictionary
+        return json.loads(
+            json.dumps(search_results, default=lambda o: o.__dict__) # serialize the search_results as a json string format
+            )
     
         

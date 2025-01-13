@@ -1,2 +1,2 @@
 from .DataValidation import DataValidation
-from .NLPValidation import NLPValidation
+from .NLPValidation import pushRequest, searchRequest
