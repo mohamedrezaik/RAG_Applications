@@ -73,9 +73,5 @@ class NLPController(BaseController):
         if not search_results or len(search_results) == 0:
             return False
         
-        # Serialize the search_results as a dictionary
-        return json.loads(
-            json.dumps(search_results, default=lambda o: o.__dict__) # serialize the search_results as a json string format
-            )
-    
+        return search_results
         

@@ -38,3 +38,8 @@ class DataChunk(BaseModel):
                 "unique": False # Refers to the values in "chunk_project_id" is not unique
             },
         ]
+        
+# This class to validate the retrieved text from vectordb provider
+class RetrievedDocument(BaseModel):
+    text: str
+    score: float

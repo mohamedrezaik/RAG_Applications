@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
+from models.mongodb_schemas import RetrievedDocument
 
 class VectorDBInterface(ABC):
 
@@ -40,5 +41,5 @@ class VectorDBInterface(ABC):
         pass
 
     @abstractmethod
-    def search_by_vector(self, collection_name: str, vector: list, limit: int= 5): # "vector" referes to the vector to search by in collection and "limit" referes to the number of returned similar vector to "vector"
+    def search_by_vector(self, collection_name: str, vector: list, limit: int= 5) -> List[RetrievedDocument]: # "vector" referes to the vector to search by in collection and "limit" referes to the number of returned similar vector to "vector"
         pass
