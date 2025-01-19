@@ -74,4 +74,15 @@ class NLPController(BaseController):
             return False
         
         return search_results
+    
+    
+    def answer_rag_question(self, project: Project, query: str, limit: int=16):
+        
+        # step1: get related documents
+        retrieved_documents = self.search_vector_db_collection(project=project, text=query, limit=limit)
+        
+        if not retrieved_documents or len(retrieved_documents) == 0:
+            return None
+        
+        
         
