@@ -109,7 +109,7 @@ class NLPController(BaseController):
         chat_history = [
             self.generation_client.construct_prompt(
                 prompt=system_message,
-                role=self.generation_client.SYSTEM.value
+                role=self.generation_client.enums.SYSTEM.value
             )
         ]
         
