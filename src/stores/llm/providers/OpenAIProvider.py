@@ -26,6 +26,8 @@ class OpenAIProvider(LLMInterface):
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_size = None
+        
+        self.enums = OpenAIEnums
 
         # Client to can access the llms provider
         self.client = OpenAI(

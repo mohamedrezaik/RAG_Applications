@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     VECTORDB_PROVIDER: str
     VECTORDB_NAME: str
     VECTORDB_DISTANCE_METHOD: str = None
+    
+    PRIMARY_LANG: str ="en"
+    DEFAULT_LANG: str = "en"
 
     class Config:
         # Setting the environment variables file name

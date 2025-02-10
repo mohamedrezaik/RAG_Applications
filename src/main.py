@@ -4,6 +4,7 @@ from routes import base, data, nlp
 from stores import LLMProvidersFactory
 from stores import VectorDBFactory
 from motor.motor_asyncio import AsyncIOMotorClient # This for creating a mongo engine connected to monodb server
+from stores.llm.templates.templates_parser import TemplateParser
 
 from helpers import config
 
@@ -45,6 +46,12 @@ async def lifespan(app: FastAPI):
     app.vectordb_provider = vectordb_provider_factory.ge_provider(provider=settings.VECTORDB_PROVIDER)
     # Connect to the vectordb 
     app.vectordb_provider.connect()
+    
+    # Define template parser of required language
+    app.template_parser = TemplateParser(
+        language=settings.PRIMARY_LANG,
+        default_language=settings.DEFAULT_LANG
+        )
     
     yield # Before shutdown the applicaton do the following
     # Close mongodb connection

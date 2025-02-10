@@ -24,6 +24,8 @@ class CoHereProvider(LLMInterface):
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_size = None
+        
+        self.enums = CoHereEnums
 
         # Client to can access the llms provider
         self.client = cohere.ClientV2(
