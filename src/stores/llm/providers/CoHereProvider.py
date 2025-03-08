@@ -8,8 +8,8 @@ class CoHereProvider(LLMInterface):
     def __init__(
             self,
             api_key: str,
-            defualt_input_max_characters: int= 1000,
-            defualt_generation_max_output_tokens: int= 1000,
+            defualt_input_max_characters: int= 10000,
+            defualt_generation_max_output_tokens: int= 10000,
             defualt_generation_temperature: float= 0,
         ):
         

@@ -134,7 +134,7 @@ async def search_project_index(request: Request, project_id: str, search_request
     
     
 @nlp_router.post("/index/answer/{project_id}")
-async def search_project_index(request: Request, project_id: str, search_request: searchRequest):
+async def answer_project_index(request: Request, project_id: str, search_request: searchRequest):
     
     project_model = await ProjectDataModel.get_instance(
         db_client= request.app.database_conn

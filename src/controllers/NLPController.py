@@ -104,7 +104,7 @@ class NLPController(BaseController):
             ]
         )
         
-        footer_prompt = self.template_parser.get("rag", "footer")
+        footer_prompt = self.template_parser.get("rag", "footer", {"query": query})
         
         chat_history = [
             self.generation_client.construct_prompt(
