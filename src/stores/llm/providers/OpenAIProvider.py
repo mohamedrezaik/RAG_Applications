@@ -32,9 +32,9 @@ class OpenAIProvider(LLMInterface):
         # Client to can access the llms provider
         self.client = OpenAI(
             api_key=self.api_key,
-            api_url=self.api_url
+            base_url=self.api_url
         )
-
+        
         # Create a logger to moniter connections and generations
         self.logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ class OpenAIProvider(LLMInterface):
             max_tokens=max_output_tokens,
             temperature=temperature
         )
-
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         # Check the status of response
         if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message or len(response.choices[0].message["content"]) == 0:
             self.logger.error("Error occured while generating text using OpenAI!")
