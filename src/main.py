@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 from routes import base, data, nlp
 from stores import LLMProvidersFactory
 from stores import VectorDBFactory
-from motor.motor_asyncio import AsyncIOMotorClient # This for creating a mongo engine connected to monodb server
 from stores.llm.templates.templates_parser import TemplateParser
-
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 from helpers import config
 
 import logging
@@ -20,13 +20,14 @@ async def lifespan(app: FastAPI):
     # Get the settings to extract dependencies of mongo connection(Environment variables)
     settings = config.get_settings()
 
-    # Get mongodb URL and mongodb name
-    mongodb_url = settings.MONGODB_URL
-    mongodb_database = settings.MONGODB_DATABASE
+    # Get Postgres connection details from environment variables
+    postgres_conn = f"postgresql+asyncpg://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_MAIN_DATABASE}"
 
-    # Create the mongodb client and connection to database inside 'app' to be accessed any where
-    app.mongodb_client = AsyncIOMotorClient(mongodb_url)
-    app.database_conn = app.mongodb_client[mongodb_database]
+    # Create the db_engine and connection to database inside 'app' to be accessed any where
+    app.db_engine = create_async_engine(postgres_conn)
+    app.database_conn = sessionmaker(
+        app.db_engine, expire_on_commit=False, class_=AsyncSession
+    )
 
     # Get the LLM providers Factory
     llm_provider_factory = LLMProvidersFactory(settings)
@@ -54,8 +55,8 @@ async def lifespan(app: FastAPI):
         )
     
     yield # Before shutdown the applicaton do the following
-    # Close mongodb connection
-    app.mongodb_client.close()
+    # Close db_engine connection
+    await app.db_engine.dispose()
     # Close vectordb connection
     app.vectordb_provider.disconnect()
     
