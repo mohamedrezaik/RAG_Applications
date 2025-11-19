@@ -3,7 +3,7 @@ from ..VectorDBInterface import VectorDBInterface
 from ..VectorDBEnums import DistanceMethodEnums
 import logging
 from typing import List
-from models.mongodb_schemas import RetrievedDocument
+from models.db_schemas import RetrievedDocument
 
 
 class QdrantDBProvider(VectorDBInterface):

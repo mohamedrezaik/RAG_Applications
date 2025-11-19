@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from models.mongodb_schemas import RetrievedDocument
+from models.db_schemas import RetrievedDocument
 
 class VectorDBInterface(ABC):
 

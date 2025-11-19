@@ -1,6 +1,6 @@
 from .BaseDataModel import BaseDataModel
 from .enums import DataBaseEnums
-from .mongodb_schemas import Asset
+from .db_schemas import Asset
 from bson.objectid import ObjectId
 from pymongo import InsertOne # Operation type(insert on record)
 

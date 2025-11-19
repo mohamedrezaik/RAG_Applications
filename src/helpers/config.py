@@ -10,9 +10,12 @@ class Settings(BaseSettings):
     FILE_MAX_SIZE: int # Validate it's int type
     FILE_DEFAULT_CHUNK_SIZE: int # Validate it's int type
 
-    # Mongo connection variables
-    MONGODB_DATABASE: str
-    MONGODB_URL: str
+    # PostgreSQL Config
+    POSTGRES_USERNAME: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_MAIN_DATABASE: str
 
     # LLM Config
     GENERATION_PROVIDER: str

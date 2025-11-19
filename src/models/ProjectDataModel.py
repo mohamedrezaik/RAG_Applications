@@ -1,6 +1,6 @@
 from .BaseDataModel import BaseDataModel
 from .enums import DataBaseEnums
-from .mongodb_schemas import Project
+from .db_schemas import Project
 
 
 class ProjectDataModel(BaseDataModel):
