@@ -29,4 +29,5 @@ class Asset(SQLAlchemyBase):
     # Note: by default any column that is primary key or unique is indexed automatically
     __table_args__ = (
         Index("idx_asset_project_id", asset_project_id),
+        Index("ix_asset_type", asset_type)
     )
