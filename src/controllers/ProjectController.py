@@ -7,7 +7,7 @@ class ProjectController(BaseController): # Inherit the general information from 
         super().__init__()
 
     # This function to return the requested project_id files directory 
-    def get_project_path(self, project_id:str):
+    def get_project_path(self, project_id:int):
 
         # We use 'os' library to get the direcotry of our project_id files in a stable way and work on any machine(linux, windows, ...ect)
         project_dir = os.path.join(

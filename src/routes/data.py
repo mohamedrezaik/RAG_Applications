@@ -21,7 +21,7 @@ data_router = APIRouter(
 @data_router.post("/upload/{project_id}") # project_id to direct the user into desired operations
 async def upload_data(
                     request: Request,
-                    project_id:str,
+                    project_id:int,
                     file:UploadFile, # We use UploadFile from fastapi to recieve the user files via it to allow fastapi deals with it probably
                     app_settings:Settings=Depends(get_settings), # We set the settings type as Settings class and use Depends from FastAPI to be sure get_settings() works probably
                     ):
@@ -107,7 +107,7 @@ async def upload_data(
 
 # This router to process uploaded data files
 @data_router.post("/process/{project_id}")
-async def process_files(request: Request, project_id:str, recieved_data:DataValidation): # We use 'DataValidation' as 'recieved_data' type to make FastApi deal with it as an object inhirets from pydantic 'BaseModel' to validate recieved data
+async def process_files(request: Request, project_id:int, recieved_data:DataValidation): # We use 'DataValidation' as 'recieved_data' type to make FastApi deal with it as an object inhirets from pydantic 'BaseModel' to validate recieved data
 
     # Extract processing parameters from user request
     file_id = recieved_data.file_id

@@ -7,10 +7,9 @@ class ProjectDataModel(BaseDataModel):
 
     def __init__(self, db_client: object):
         # Make the parent (BaseDataModel) see the db_client
-        super().__init__(db_client)
+        super().__init__(db_client=db_client)
 
-        # Get the collection of projects from our database
-        self.collection = self.db_client[DataBaseEnums.COLLECTION_PROJECT_NAME.value]
+        self.db_client = db_client
 
     # This static method to can orchastrate between "__init__" as it normal method and "create_indexing_of_collection" as it's async method
     @classmethod
@@ -45,17 +44,24 @@ class ProjectDataModel(BaseDataModel):
     # This method takes data in type of "Project" (inhiret from pydantic) to validate the data
     async def create_project_doc(self, project:Project):
 
-        # Insert a new document and await it to get the result of insertion
-        result = await self.collection.insert_one(project.model_dump()) # We used project.model_dump() to convert our validated variables into dictoinary formatting to be inserted in database
-
-        # As any insertion operation in mongodb has "_id" so we can get it from result
-        project._id = result.inserted_id
-        
-        # Our return be "Project" type
+        async with self.db_client() as session:
+            async with session.begin():
+                session.add(project)
+            await session.commit()
+            await session.refresh(project)
+            
         return project
+        # # Insert a new document and await it to get the result of insertion
+        # result = await self.collection.insert_one(project.model_dump()) # We used project.model_dump() to convert our validated variables into dictoinary formatting to be inserted in database
+
+        # # As any insertion operation in mongodb has "_id" so we can get it from result
+        # project._id = result.inserted_id
+        
+        # # Our return be "Project" type
+        # return project
         
     # This method to get a specific document in project collection, if it's not exist create one
-    async def get_project(self, project_id: str):
+    async def get_project(self, project_id: int):
         
         # Get the document(dictionary formatting) of a specific "project_id"
         document = await self.collection.find_one({"project_id": project_id})
