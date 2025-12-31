@@ -13,7 +13,7 @@ class NLPController(BaseController):
         self.template_parser = template_parser
         
         
-    def create_collection_name(self, project_id: str):
+    def create_collection_name(self, project_id: int):
         # create a collection name consists of project id
         return f"Collection_{project_id}".strip()
     

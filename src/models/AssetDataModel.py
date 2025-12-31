@@ -1,6 +1,6 @@
 from .BaseDataModel import BaseDataModel
 from .enums import DataBaseEnums
-from .mongodb_schemas import Asset
+from .db_schemas import Asset
 from bson.objectid import ObjectId
 from pymongo import InsertOne # Operation type(insert on record)
 
@@ -52,7 +52,7 @@ class AssetDataModel(BaseDataModel):
         return asset
     
     # A method to get all assets
-    async def get_all_assets(self, asset_project_id: str, asset_type: str):
+    async def get_all_assets(self, asset_project_id: int, asset_type: str):
         # Get all assets associated with requested asset_project_id and asset_type
         records = await self.collection.find(
                     {
@@ -71,7 +71,7 @@ class AssetDataModel(BaseDataModel):
         return assets
     
      # A method to get one asset
-    async def get_one_asset(self, asset_project_id: str, asset_name: str):
+    async def get_one_asset(self, asset_project_id: int, asset_name: str):
         # Get one asset associated with requested asset_project_id and asset_name
         record = await self.collection.find_one(
                     {
